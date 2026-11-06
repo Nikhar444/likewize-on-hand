@@ -43,7 +43,7 @@ VPN and Device Management on first launch.
 
 ## Structure
 
-Protect covers three verticals: SP, GTP and Home Tech. Repair, replacement and
+Protect covers three verticals: DP (Device Protection), GTP and Home Tech. Repair, replacement and
 extended warranty sit under Fulfilment, since they are ways a claim is covered
 rather than programmes in their own right.
 
