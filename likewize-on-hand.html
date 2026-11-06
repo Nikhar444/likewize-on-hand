@@ -1,0 +1,757 @@
+<title>Likewize On Hand</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Hanken+Grotesk:wght@400;500;600&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<style>
+/* Layout: phone app shell. Fixed brand header, scrolling view stack, fixed 5-tab bar.
+   Type and chrome scale fluidly with the viewport so labels never clip or orphan.
+   Decoration is the Likewize dot field (dots scaling across a grid), generated in SVG. */
+:root{
+  --bg:#F7F6FB; --surface:#FFFFFF; --surface-2:#EFEDF8;
+  --fg:#1C1B22; --fg-dim:#5C5A6B; --line:#E2DFF0;
+  --brand:#3200BE; --brand-2:#1A0066; --brand-ink:#FFFFFF; --accent:#3200BE;
+  --pink:#FF96FF; --lilac:#F5D2FA; --mist:#EBEBF5;
+  --display:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --body:"Hanken Grotesk",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --r:14px; --r-lg:22px;
+  --header-h:56px; --tabs-h:62px;
+  --gutter:max(16px,env(safe-area-inset-left,0px));
+  --gutter-r:max(16px,env(safe-area-inset-right,0px));
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0F0A1E; --surface:#1A1333; --surface-2:#241A47;
+  --fg:#F1EEFF; --fg-dim:#A9A2C4; --line:#2E2456;
+  --brand:#3A12C9; --brand-2:#120049; --brand-ink:#FFFFFF; --accent:#BCA6FF;
+  --pink:#FF96FF; --lilac:#3B1F52; --mist:#231A44;
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#0F0A1E; --surface:#1A1333; --surface-2:#241A47;
+  --fg:#F1EEFF; --fg-dim:#A9A2C4; --line:#2E2456;
+  --brand:#3A12C9; --brand-2:#120049; --brand-ink:#FFFFFF; --accent:#BCA6FF;
+  --pink:#FF96FF; --lilac:#3B1F52; --mist:#231A44;
+  color-scheme:dark;
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--bg); color:var(--fg);
+  font-family:var(--body); font-size:clamp(15px,4vw,16px); line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:40;background:var(--brand)}
+h1,h2,h3,h4{font-family:var(--display);font-weight:600;letter-spacing:-.02em;margin:0;text-wrap:balance}
+p{margin:0;text-wrap:pretty}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--pink);outline-offset:2px;border-radius:6px}
+
+.wrap{padding-left:var(--gutter);padding-right:var(--gutter-r)}
+
+/* ---------- header ---------- */
+.appbar{
+  position:fixed;top:0;left:0;right:0;z-index:30;
+  background:var(--brand);color:var(--brand-ink);
+  padding-top:env(safe-area-inset-top,0px);
+}
+.appbar__in{
+  height:var(--header-h);display:flex;align-items:center;gap:12px;
+  padding-left:var(--gutter);padding-right:var(--gutter-r);
+}
+.logo{height:clamp(15px,4.4vw,18px);width:auto;display:block;flex:0 0 auto}
+.logo path{fill:#fff}
+.iconbtn{
+  margin-left:auto;display:grid;place-items:center;width:36px;height:36px;border-radius:10px;
+  background:rgba(255,255,255,.14);color:#fff;flex:0 0 auto;
+}
+.iconbtn svg{width:19px;height:19px}
+
+/* ---------- view stack ---------- */
+main{padding-top:var(--header-h);padding-bottom:calc(var(--tabs-h) + 22px)}
+.view{animation:rise .32s ease both}
+@keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.view{animation:none}}
+
+/* ---------- hero ---------- */
+.hero{position:relative;overflow:hidden;background:var(--brand);color:#fff}
+.hero__dots{position:absolute;right:-26px;top:-14px;width:min(58%,260px);opacity:.85;pointer-events:none}
+.hero__in{position:relative;padding-block:clamp(26px,7vw,46px) clamp(22px,6vw,40px)}
+.eyebrow{font-family:var(--display);font-size:clamp(10px,2.7vw,11px);font-weight:600;letter-spacing:.17em;text-transform:uppercase;color:var(--fg-dim)}
+.hero .eyebrow{color:var(--pink)}
+.hero h1{font-size:clamp(27px,7.6vw,42px);line-height:1.07;margin-top:12px;max-width:15ch}
+.hero p{margin-top:12px;color:rgba(255,255,255,.82);font-size:clamp(14px,3.9vw,16px);max-width:36ch}
+.hero__row{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}
+.btn{
+  display:inline-flex;align-items:center;gap:7px;padding:11px 18px;border-radius:999px;
+  font-family:var(--display);font-weight:600;font-size:clamp(13px,3.6vw,15px);letter-spacing:-.01em;
+  background:var(--pink);color:#1A0066;
+}
+.btn--ghost{background:transparent;color:#fff;box-shadow:inset 0 0 0 1.4px rgba(255,255,255,.45)}
+.btn svg{width:15px;height:15px;flex:0 0 auto}
+
+/* ---------- sections ---------- */
+section{padding-block:clamp(22px,6vw,30px)}
+.sechead h2,section>h2{font-size:clamp(20px,5.4vw,27px);margin-top:6px}
+.lede{color:var(--fg-dim);font-size:clamp(14px,3.8vw,15.5px);margin-top:8px;max-width:46ch}
+
+/* solution cards */
+.sols{display:grid;gap:12px;margin-top:18px}
+.sol{
+  position:relative;overflow:hidden;text-align:left;width:100%;min-width:0;
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);
+  padding:18px 16px;display:grid;gap:7px;transition:transform .18s ease;
+}
+.sol:active{transform:scale(.985)}
+.sol__dots{position:absolute;right:-8px;bottom:-16px;width:118px;opacity:.9;pointer-events:none}
+.sol__k{font-family:var(--display);font-size:clamp(9.5px,2.6vw,10.5px);font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);position:relative}
+.sol h3{font-size:clamp(17px,4.7vw,20px);position:relative}
+.sol p{font-size:clamp(13.5px,3.7vw,15px);color:var(--fg-dim);position:relative;max-width:32ch}
+.sol__go{display:inline-flex;align-items:center;gap:6px;font-family:var(--display);font-weight:600;font-size:13px;color:var(--accent);margin-top:3px;position:relative}
+.sol__go svg{width:14px;height:14px;flex:0 0 auto}
+
+/* stat strip */
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;margin-top:18px}
+.stat{background:var(--surface);padding:15px 14px;min-width:0}
+.stat b{display:block;font-family:var(--display);font-size:clamp(21px,5.8vw,26px);font-weight:700;letter-spacing:-.03em;color:var(--accent);font-variant-numeric:tabular-nums}
+.stat span{display:block;font-size:clamp(12px,3.3vw,13px);color:var(--fg-dim);margin-top:3px;line-height:1.35}
+
+/* quotes */
+.quotes{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;margin-top:16px;padding-bottom:6px;
+  margin-left:calc(-1 * var(--gutter));margin-right:calc(-1 * var(--gutter-r));
+  padding-left:var(--gutter);padding-right:var(--gutter-r);
+  scrollbar-width:none}
+.quotes::-webkit-scrollbar{display:none}
+.quote{flex:0 0 82%;min-width:0;scroll-snap-align:start;background:var(--surface-2);border-radius:var(--r-lg);padding:18px 16px;display:grid;gap:12px;margin:0}
+.quote__mark{font-family:var(--display);font-size:34px;line-height:.6;color:var(--pink)}
+.quote p{font-size:clamp(13.5px,3.8vw,15px)}
+.quote footer{font-size:12px;color:var(--fg-dim)}
+.quote footer b{display:block;font-family:var(--display);color:var(--fg);font-size:13px}
+
+/* segmented control: a grid, so chips never clip or scroll off the edge */
+.seg{display:grid;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));gap:8px;margin-top:18px}
+.seg[data-cols="3"]{grid-template-columns:repeat(3,1fr)}
+.seg button{
+  min-width:0;padding:9px 10px;border-radius:999px;text-align:center;
+  font-family:var(--display);font-weight:600;font-size:clamp(12px,3.4vw,14px);
+  background:var(--surface);border:1px solid var(--line);color:var(--fg-dim);
+}
+.seg button[aria-selected="true"]{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
+
+/* panel */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:18px 16px;margin-top:14px}
+.panel h3{font-size:clamp(18px,4.9vw,21px)}
+.panel p{font-size:clamp(14px,3.8vw,15.5px);color:var(--fg-dim);margin-top:9px}
+.bullets{list-style:none;padding:0;margin:14px 0 0;display:grid;gap:9px}
+.bullets li{display:flex;gap:9px;font-size:clamp(13.5px,3.7vw,15px);align-items:flex-start;min-width:0}
+.bullets svg{width:15px;height:15px;flex:0 0 auto;margin-top:3px;color:var(--accent)}
+
+/* fulfilment cards */
+.fulfil{display:grid;gap:10px;margin-top:16px}
+.fulfil article{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px;display:flex;gap:12px;min-width:0}
+.fulfil .row__ic{background:var(--surface-2)}
+.fulfil b{display:block;font-family:var(--display);font-size:clamp(14px,3.9vw,15.5px)}
+.fulfil span{font-size:clamp(13px,3.5vw,14px);color:var(--fg-dim)}
+
+/* why trio */
+.why{display:grid;gap:10px;margin-top:16px}
+.why div{border-left:3px solid var(--pink);padding:2px 0 2px 13px;min-width:0}
+.why b{font-family:var(--display);font-size:clamp(14px,3.9vw,15.5px);display:block}
+.why span{font-size:clamp(13px,3.6vw,14.5px);color:var(--fg-dim)}
+
+/* demo blocks */
+.demo{background:var(--brand-2);color:#fff;border-radius:var(--r-lg);padding:18px 16px;margin-top:18px;position:relative;overflow:hidden}
+.demo__dots{position:absolute;right:-14px;top:-18px;width:130px;opacity:.5;pointer-events:none}
+.demo .eyebrow{color:var(--pink);position:relative}
+.demo h3{font-size:clamp(17px,4.8vw,20px);margin-top:9px;position:relative}
+.demo__sub{font-size:clamp(13px,3.6vw,14.5px);color:rgba(255,255,255,.75);margin-top:7px;position:relative}
+.steps{display:flex;gap:6px;margin-top:16px;position:relative}
+.steps i{height:3px;flex:1;border-radius:2px;background:rgba(255,255,255,.22)}
+.steps i.on{background:var(--pink)}
+.qlabel{font-family:var(--display);font-weight:600;font-size:clamp(14px,4vw,16px);margin-top:15px;position:relative}
+.opts{display:grid;gap:8px;margin-top:12px;position:relative}
+.opt{
+  text-align:left;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);
+  border-radius:12px;padding:12px 13px;color:#fff;display:flex;align-items:center;gap:10px;min-width:0;
+}
+.opt>span:last-child{min-width:0}
+.opt:active{background:rgba(255,255,255,.16)}
+.opt b{font-family:var(--display);font-weight:600;font-size:clamp(13.5px,3.8vw,15px)}
+.opt small{display:block;color:rgba(255,255,255,.66);font-size:clamp(12px,3.3vw,13px);margin-top:1px}
+.opt__ic{width:30px;height:30px;border-radius:8px;background:var(--pink);color:#1A0066;display:grid;place-items:center;flex:0 0 auto}
+.opt__ic svg{width:16px;height:16px}
+.result{position:relative;margin-top:14px;background:rgba(255,150,255,.14);border:1px solid rgba(255,150,255,.4);border-radius:12px;padding:14px}
+.result b{display:block;font-family:var(--display);font-size:clamp(14px,3.9vw,16px)}
+.result p{font-size:clamp(13px,3.6vw,14.5px);color:rgba(255,255,255,.8);margin-top:6px}
+.reset{margin-top:12px;font-family:var(--display);font-weight:600;font-size:13px;color:var(--pink);position:relative;text-decoration:underline;text-underline-offset:3px}
+
+/* estimator */
+.field{margin-top:14px;position:relative}
+.field label{display:block;font-family:var(--display);font-size:11.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.66)}
+.field select{
+  width:100%;max-width:100%;margin-top:7px;padding:11px 12px;border-radius:12px;font:inherit;font-size:clamp(14px,3.9vw,16px);
+  background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.22);
+}
+.field select option{color:#1C1B22;background:#fff}
+.payout{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.payout b{font-family:var(--display);font-size:clamp(26px,7.4vw,34px);font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.payout span{font-size:13px;color:rgba(255,255,255,.7)}
+
+/* carbon band */
+.band{background:var(--lilac);color:var(--fg);border-radius:var(--r-lg);padding:18px 16px;margin-top:18px}
+.band h3{font-size:clamp(18px,4.9vw,21px)}
+.band ul{list-style:none;padding:0;margin:14px 0 0;display:grid;gap:11px}
+.band li{display:grid;gap:2px;min-width:0}
+.band li b{font-family:var(--display);font-size:clamp(18px,5vw,22px);font-weight:700;color:var(--brand);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .band li b{color:var(--pink)}}
+:root[data-theme="dark"] .band li b{color:var(--pink)}
+.band li span{font-size:clamp(13px,3.6vw,14.5px);color:var(--fg-dim)}
+
+/* contact rows */
+.rows{display:grid;gap:10px;margin-top:16px}
+.row{display:flex;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:13px 14px;min-width:0}
+.row>span:nth-child(2){min-width:0}
+.row__ic{width:34px;height:34px;border-radius:9px;background:var(--surface-2);color:var(--accent);display:grid;place-items:center;flex:0 0 auto}
+.row__ic svg{width:17px;height:17px}
+.row b{display:block;font-family:var(--display);font-size:clamp(14px,3.9vw,15.5px)}
+.row span{font-size:clamp(12.5px,3.4vw,13.5px);color:var(--fg-dim);overflow-wrap:anywhere}
+.copy{margin-left:auto;font-family:var(--display);font-weight:600;font-size:12px;color:var(--accent);flex:0 0 auto}
+
+.note{font-size:12px;color:var(--fg-dim);margin-top:20px;line-height:1.45}
+
+/* ---------- tab bar ---------- */
+.tabs{
+  position:fixed;left:0;right:0;bottom:0;z-index:30;
+  background:var(--surface);
+  background:color-mix(in srgb,var(--surface) 92%,transparent);
+  backdrop-filter:blur(14px);border-top:1px solid var(--line);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  padding-left:max(0px,env(safe-area-inset-left,0px));padding-right:max(0px,env(safe-area-inset-right,0px));
+}
+.tabs__in{height:var(--tabs-h);display:grid;grid-template-columns:repeat(5,1fr)}
+.tab{display:grid;place-items:center;gap:3px;color:var(--fg-dim);padding-top:4px;min-width:0}
+.tab svg{width:21px;height:21px}
+.tab span{font-family:var(--display);font-size:clamp(9.5px,2.7vw,11px);font-weight:600;white-space:nowrap}
+.tab[aria-selected="true"]{color:var(--accent)}
+.tab[aria-selected="true"] .dot{opacity:1}
+.dot{width:4px;height:4px;border-radius:50%;background:var(--pink);opacity:0}
+
+/* ---------- QR sheet ---------- */
+.sheet{position:fixed;inset:0;z-index:50;display:grid;place-items:center;padding:20px;background:rgba(10,4,26,.62)}
+.sheet__card{background:var(--surface);border-radius:var(--r-lg);padding:22px 20px;max-width:330px;width:100%;text-align:center;display:grid;gap:12px}
+.sheet__card h3{font-size:19px}
+.sheet__card p{font-size:13.5px;color:var(--fg-dim)}
+#qr{display:grid;place-items:center;padding:14px;background:#fff;border-radius:14px;margin:2px auto 0;width:min(100%,214px)}
+#qr img,#qr canvas{display:block;max-width:100%;height:auto}
+.urlbox{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;background:var(--surface-2);border-radius:10px;padding:10px;overflow-wrap:anywhere;color:var(--fg)}
+.sheet__close{font-family:var(--display);font-weight:600;font-size:14px;color:var(--accent)}
+
+@media (min-width:600px){
+  .sols{grid-template-columns:repeat(3,1fr)}
+  .why{grid-template-columns:repeat(3,1fr)}
+  .fulfil{grid-template-columns:repeat(3,1fr)}
+  .stats{grid-template-columns:repeat(4,1fr)}
+  .quote{flex-basis:46%}
+  main{max-width:880px;margin:0 auto}
+  .band ul{grid-template-columns:repeat(3,1fr)}
+}
+</style>
+
+<header class="appbar">
+  <div class="appbar__in">
+    <svg class="logo" viewBox="0 0 143 30" aria-label="Likewize" role="img"><path d="M5.39913 0.802734H0.996094V29.0417H5.39913V0.802734Z"></path><path d="M11.5318 0.555664C9.89531 0.555664 8.61328 1.83769 8.61328 3.47415C8.61328 5.1106 9.89531 6.39263 11.5318 6.39263C13.1682 6.39263 14.4502 5.1106 14.4502 3.47415C14.4502 1.83769 13.1682 0.555664 11.5318 0.555664Z"></path><path d="M13.7546 8.1665H9.35156V29.0414H13.7546V8.1665Z"></path><path d="M80.4428 25.0273H78.9401L75.9163 8.1665H67.9223L64.8985 25.0273H63.3958L59.9061 8.1665H55.3066L60.218 29.0435H67.9912L71.2094 11.8728H72.6292L75.8454 29.0435H83.6185L88.5299 8.1665H83.9709L80.4428 25.0273Z"></path><path d="M92.9634 0.555664C91.3269 0.555664 90.0449 1.83769 90.0449 3.47415C90.0449 5.1106 91.3269 6.39263 92.9634 6.39263C94.5999 6.39263 95.8819 5.1106 95.8819 3.47415C95.8819 1.83769 94.5999 0.555664 92.9634 0.555664Z"></path><path d="M139.364 23.5552C137.727 23.5552 136.445 24.8372 136.445 26.4737C136.445 28.1101 137.727 29.3921 139.364 29.3921C141 29.3921 142.282 28.1101 142.282 26.4737C142.282 24.8372 141 23.5552 139.364 23.5552Z"></path><path d="M95.1843 8.1665H90.7812V29.0414H95.1843V8.1665Z"></path><path d="M102.093 23.81L113.721 15.0019V8.1665H98.3486V12.1442H109.512V13.3999L97.8848 22.208V29.0435H114.11V25.0657H102.093V23.81Z"></path><path d="M44.6181 7.54688C38.8602 7.54688 34.8379 12.0937 34.8379 18.6051C34.8379 21.7869 35.7513 24.5251 37.4789 26.5261C39.2531 28.5778 41.7219 29.6633 44.6181 29.6633C49.7361 29.6633 53.3614 27.3686 54.1128 22.6416H49.6268C49.4161 24.6527 48.0105 26.3297 44.6181 26.3297C41.2257 26.3297 39.6662 23.958 39.6662 20.3124V19.8588H54.3984V18.6071C54.3984 11.6826 50.7427 7.5489 44.6181 7.5489V7.54688ZM49.649 15.8811H39.7088C40.0186 12.8978 41.2359 10.9211 44.6181 10.9211C48.2576 10.9211 49.649 12.9686 49.649 15.7373V15.8811Z"></path><path d="M125.556 7.54688C119.798 7.54688 115.775 12.0937 115.775 18.6051C115.775 21.7869 116.689 24.5251 118.416 26.5261C120.191 28.5778 122.659 29.6633 125.556 29.6633C130.674 29.6633 134.299 27.3686 135.05 22.6416H130.564C130.354 24.6527 128.948 26.3297 125.556 26.3297C122.163 26.3297 120.604 23.958 120.604 20.3124V19.8588H135.336V18.6071C135.336 11.6826 131.68 7.5489 125.556 7.5489V7.54688ZM130.587 15.8811H120.646C120.956 12.8978 122.173 10.9211 125.556 10.9211C129.195 10.9211 130.587 12.9686 130.587 15.7373V15.8811Z"></path><path d="M27.0912 18.5708L35.8669 8.16679H30.4046L23.5044 16.6569H22.1413V0.802734H17.7383V29.0437H22.1413V20.5151H23.5064L30.3601 29.0437H35.8588L27.0912 18.6397V18.5708Z"></path></svg>
+    <button class="iconbtn" id="qrBtn" aria-label="Show QR code to open on a phone">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1.4"/><rect x="14" y="3" width="7" height="7" rx="1.4"/><rect x="3" y="14" width="7" height="7" rx="1.4"/><path d="M14 14h3M20 14h1M14 17v4M17 20h4M20 17v0"/></svg>
+    </button>
+  </div>
+</header>
+
+<main>
+
+<!-- ================= HOME ================= -->
+<div class="view" id="v-home">
+  <div class="hero">
+    <svg class="hero__dots" data-dots="12,7,#FF96FF"></svg>
+    <div class="hero__in wrap">
+      <p class="eyebrow">Device lifecycle</p>
+      <h1>Every tech problem made painless.</h1>
+      <p>Technology is great when it works. We are here for when it doesn't, with protection, digital care and renewal for nearly every connected device your customers own.</p>
+      <div class="hero__row">
+        <button class="btn" data-go="protect">Explore solutions
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </button>
+        <button class="btn btn--ghost" data-go="partner">Partner with us</button>
+      </div>
+    </div>
+  </div>
+
+  <section class="wrap">
+    <p class="eyebrow">Three ways we help</p>
+    <h2>We support the complete lifecycle of your customers' devices.</h2>
+    <p class="lede">Helping you, help them, from the day a device is bought to the day it is traded in.</p>
+
+    <div class="sols">
+      <button class="sol" data-go="protect">
+        <svg class="sol__dots" data-dots="7,5,#3200BE"></svg>
+        <span class="sol__k">Device protection</span>
+        <h3>Get complete tech protection.</h3>
+        <p>Damage, loss and theft are no match for full device protection across phones, gadgets and the connected home.</p>
+        <span class="sol__go">Explore protection
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </span>
+      </button>
+      <button class="sol" data-go="care">
+        <svg class="sol__dots" data-dots="7,5,#3200BE"></svg>
+        <span class="sol__k">Digital care</span>
+        <h3>Support any product, any time, anywhere.</h3>
+        <p>Omni-channel tools that resolve technical issues and reduce the cost to serve at every touchpoint.</p>
+        <span class="sol__go">Explore digital care
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </span>
+      </button>
+      <button class="sol" data-go="renew">
+        <svg class="sol__dots" data-dots="7,5,#3200BE"></svg>
+        <span class="sol__k">Pre-owned solutions</span>
+        <h3>The global standard for trade-in and renewal.</h3>
+        <p>The pioneer of the category, with the scale and transparency that unlock the maximum value of every device.</p>
+        <span class="sol__go">Explore pre-owned
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </span>
+      </button>
+    </div>
+  </section>
+
+  <section class="wrap" style="padding-top:4px">
+    <p class="eyebrow">At a glance</p>
+    <h2>The scale behind the service.</h2>
+    <div class="stats">
+      <div class="stat"><b>$500M</b><span>Invested in the industry's leading digital experience</span></div>
+      <div class="stat"><b>100M+</b><span>Devices saved from landfill</span></div>
+      <div class="stat"><b>40,000+</b><span>Products supported in our knowledgebase</span></div>
+      <div class="stat"><b>95%</b><span>Of devices we receive are refurbished and given a second life</span></div>
+    </div>
+  </section>
+
+  <section class="wrap" style="padding-top:4px">
+    <p class="eyebrow">In their words</p>
+    <h2>Trusted by many of the biggest brands on the planet.</h2>
+    <div class="quotes" id="quotes"></div>
+  </section>
+</div>
+
+<!-- ================= PROTECT ================= -->
+<div class="view" id="v-protect" hidden>
+  <div class="hero">
+    <svg class="hero__dots" data-dots="12,7,#FF96FF"></svg>
+    <div class="hero__in wrap">
+      <p class="eyebrow">Device protection</p>
+      <h1>Get complete tech protection.</h1>
+      <p>More than just mobile. We protect all the connected devices in your customers' lives.</p>
+    </div>
+  </div>
+
+  <section class="wrap">
+    <p class="eyebrow">Three verticals</p>
+    <h2>One programme per part of their tech life.</h2>
+    <div class="seg" id="seg-protect" data-cols="3" role="tablist" aria-label="Protection verticals"></div>
+    <div class="panel" id="panel-protect"></div>
+
+    <p class="eyebrow" style="margin-top:28px">Fulfilment</p>
+    <h2>How we make it right.</h2>
+    <p class="lede">Every vertical draws on the same fulfilment engine. The cover is the programme, these are the ways we deliver it.</p>
+    <div class="fulfil">
+      <article>
+        <span class="row__ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M14.5 6.5a3.5 3.5 0 0 0 4.7 4.7l-7 7a2.4 2.4 0 1 1-3.4-3.4Z"/><path d="M6.5 6.5 9 9"/></svg></span>
+        <span><b>Repair</b><span>Walk-in, We-Come-To-You, or mail-in to an advanced repair facility. Often fixed within hours.</span></span>
+      </article>
+      <article>
+        <span class="row__ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg></span>
+        <span><b>Replacement</b><span>Like-for-like, next day, when a repair is not the fastest way to keep a customer connected.</span></span>
+      </article>
+      <article>
+        <span class="row__ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M12 3 5 5.6v5.6c0 4.3 2.9 7.6 7 9.2 4.1-1.6 7-4.9 7-9.2V5.6Z"/><path d="m9.2 12 1.9 1.9 3.7-3.8"/></svg></span>
+        <span><b>Extended warranty</b><span>Cover that goes beyond the manufacturer, with benefits from day one and accidental damage on portable electronics.</span></span>
+      </article>
+    </div>
+
+    <div class="demo">
+      <svg class="demo__dots" data-dots="9,6,#FF96FF"></svg>
+      <p class="eyebrow">Claim journey, demo</p>
+      <h3>A claim in three taps.</h3>
+      <p class="demo__sub">A walkthrough of the omni-channel claim platform. Nothing is submitted.</p>
+      <div class="steps" id="claimSteps"><i></i><i></i><i></i></div>
+      <div id="claimBody"></div>
+    </div>
+
+    <p class="eyebrow" style="margin-top:28px">Why Likewize</p>
+    <div class="why">
+      <div><b>Best experience</b><span>Digital-first journeys create high NPS scores.</span></div>
+      <div><b>Best product</b><span>We are flexible in creating what is right for your customers.</span></div>
+      <div><b>Best margins</b><span>Our clients get the highest margins in the industry.</span></div>
+    </div>
+  </section>
+</div>
+
+<!-- ================= CARE ================= -->
+<div class="view" id="v-care" hidden>
+  <div class="hero">
+    <svg class="hero__dots" data-dots="12,7,#FF96FF"></svg>
+    <div class="hero__in wrap">
+      <p class="eyebrow">Digital care</p>
+      <h1>Support your customers on any product.</h1>
+      <p>The omni-channel tools needed to resolve technical issues and reduce the cost to serve, protecting your brand reputation at every touchpoint.</p>
+    </div>
+  </div>
+
+  <section class="wrap">
+    <div class="seg" id="seg-care" role="tablist" aria-label="Digital care capabilities"></div>
+    <div class="panel" id="panel-care"></div>
+
+    <div class="demo">
+      <svg class="demo__dots" data-dots="9,6,#FF96FF"></svg>
+      <p class="eyebrow">Knowledgebase, demo</p>
+      <h3>Ask it anything about a device.</h3>
+      <p class="demo__sub">A sample of the guided answers behind self-serve and agent support.</p>
+      <div class="opts" id="kbList"></div>
+      <div id="kbAnswer"></div>
+    </div>
+
+    <p class="eyebrow" style="margin-top:28px">Why Likewize</p>
+    <div class="why">
+      <div><b>Happy customers</b><span>Support solutions that create record levels of satisfaction.</span></div>
+      <div><b>Lower costs</b><span>Fewer calls and repairs mean big savings for your business.</span></div>
+      <div><b>Digital first</b><span>Experts at wholesale transformation with digital-first programmes.</span></div>
+    </div>
+  </section>
+</div>
+
+<!-- ================= RENEW ================= -->
+<div class="view" id="v-renew" hidden>
+  <div class="hero">
+    <svg class="hero__dots" data-dots="12,7,#FF96FF"></svg>
+    <div class="hero__in wrap">
+      <p class="eyebrow">Pre-owned</p>
+      <h1>The global standard for trade-in.</h1>
+      <p>As the original pioneer of the category, we provide the scale and transparency required to drive sustainability while unlocking the maximum value of every device.</p>
+    </div>
+  </div>
+
+  <section class="wrap">
+    <div class="seg" id="seg-renew" role="tablist" aria-label="Pre-owned capabilities"></div>
+    <div class="panel" id="panel-renew"></div>
+
+    <div class="demo">
+      <svg class="demo__dots" data-dots="9,6,#FF96FF"></svg>
+      <p class="eyebrow">Trade-in journey, demo</p>
+      <h3>Minimal-click trade-in.</h3>
+      <p class="demo__sub">Indicative figures for illustration, not a quote.</p>
+      <div class="field">
+        <label for="tiDevice">Device</label>
+        <select id="tiDevice"></select>
+      </div>
+      <div class="field">
+        <label for="tiCond">Condition</label>
+        <select id="tiCond">
+          <option value="good">Good, powers on, no cracks</option>
+          <option value="fair">Fair, scratches, screen intact</option>
+          <option value="cracked">Cracked screen or will not power on</option>
+        </select>
+      </div>
+      <div class="result">
+        <div class="payout"><b id="tiValue">&pound;0</b><span>indicative trade-in credit</span></div>
+        <p id="tiNote"></p>
+      </div>
+    </div>
+
+    <div class="band">
+      <p class="eyebrow">Two words</p>
+      <h3>Carbon. Negative.</h3>
+      <ul>
+        <li><b>100M+</b><span>Devices saved from landfills</span></li>
+        <li><b>95%</b><span>Of devices received are refurbished and given a second life</span></li>
+        <li><b>Texas</b><span>Greenhouse gases reduced equal to a forest that size</span></li>
+      </ul>
+    </div>
+
+    <p class="eyebrow" style="margin-top:28px">Why Likewize</p>
+    <div class="why">
+      <div><b>Customer experience</b><span>We make trade-in stress-free and easy for your customers.</span></div>
+      <div><b>Fast fulfilments</b><span>Seamless operations keep things moving for your business.</span></div>
+      <div><b>Top quality devices</b><span>The highest quality Certified Pre-Owned products.</span></div>
+    </div>
+  </section>
+</div>
+
+<!-- ================= PARTNER ================= -->
+<div class="view" id="v-partner" hidden>
+  <div class="hero">
+    <svg class="hero__dots" data-dots="12,7,#FF96FF"></svg>
+    <div class="hero__in wrap">
+      <p class="eyebrow">Partner with us</p>
+      <h1>The best device programmes run on Likewize.</h1>
+      <p>We operate in the high-stakes moments where devices fail, expectations are high, and brands are judged.</p>
+    </div>
+  </div>
+
+  <section class="wrap">
+    <p class="eyebrow">What a partnership covers</p>
+    <h2>Built to order, run at global scale.</h2>
+    <ul class="bullets">
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Built-to-order protection programmes, priced to your margin targets</li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Rapid repair: walk-in, We-Come-To-You, or mail-in to advanced facilities</li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Digital care across 40,000+ products, in your brand and your channels</li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Trade-in and Certified Pre-Owned, with fully automated grading facilities</li>
+    </ul>
+
+    <p class="eyebrow" style="margin-top:28px">Get in touch</p>
+    <h2>Think we can help your business? Let's talk.</h2>
+    <div class="rows">
+      <div class="row">
+        <span class="row__ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M3 7l9 6 9-6"/><rect x="3" y="5" width="18" height="14" rx="2"/></svg></span>
+        <span><b>Partner enquiries</b><span>likewize.com/partner-with-us</span></span>
+        <button class="copy" data-copy="https://likewize.com/partner-with-us/">Copy</button>
+      </div>
+      <div class="row">
+        <span class="row__ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M12 3v18M3 12h18"/><circle cx="12" cy="12" r="9"/></svg></span>
+        <span><b>Claims and repairs</b><span>For existing customers, start a claim or repair online</span></span>
+        <a class="copy" href="https://likewize.com/" target="_blank" rel="noopener">Open</a>
+      </div>
+      <div class="row">
+        <span class="row__ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M12 21s7-5.1 7-10.5A7 7 0 0 0 5 10.5C5 15.9 12 21 12 21Z"/><circle cx="12" cy="10.5" r="2.4"/></svg></span>
+        <span><b>Our offices</b><span>Operations and repair facilities worldwide</span></span>
+        <a class="copy" href="https://likewize.com/our-offices/" target="_blank" rel="noopener">Open</a>
+      </div>
+      <div class="row">
+        <span class="row__ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-5.4 6-5.4s6 2.1 6 5.4M17 11h4M19 9v4"/></svg></span>
+        <span><b>Careers</b><span>We hire bold thinkers who thrive in a fast-paced culture</span></span>
+        <a class="copy" href="https://likewize.com/company/careers/" target="_blank" rel="noopener">Open</a>
+      </div>
+    </div>
+
+    <p class="eyebrow" style="margin-top:28px">In their words</p>
+    <div class="quotes" id="quotes2"></div>
+
+    <p class="note">An internal walkthrough of the Likewize proposition, built from the public likewize.com content. Demos are illustrative. No claim, quote or enquiry is submitted from this app.</p>
+  </section>
+</div>
+
+</main>
+
+<nav class="tabs">
+  <div class="tabs__in" id="tabs" role="tablist" aria-label="Sections"></div>
+</nav>
+
+<div class="sheet" id="sheet" hidden>
+  <div class="sheet__card" role="dialog" aria-modal="true" aria-label="Open on your phone">
+    <h3>Open on your phone</h3>
+    <p>Scan with your camera to carry this walkthrough with you.</p>
+    <div id="qr"></div>
+    <div class="urlbox" id="qrUrl">Link appears here once published.</div>
+    <button class="sheet__close" id="sheetClose">Close</button>
+  </div>
+</div>
+
+<script>
+/* ---------- the Likewize dot field: a grid whose dots scale across the columns ---------- */
+function dotField(svg){
+  const [cols,rows,color] = svg.dataset.dots.split(',');
+  const C=+cols, R=+rows, gap=18, pad=8;
+  const w=pad*2+(C-1)*gap, h=pad*2+(R-1)*gap;
+  svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
+  let out='';
+  for(let r=0;r<R;r++){
+    for(let c=0;c<C;c++){
+      const t=c/(C-1||1);
+      const rad=1.6+t*t*6.2;
+      const op=(0.28+t*0.62)*(1-r/(R+5));
+      out+=`<circle cx="${pad+c*gap}" cy="${pad+r*gap}" r="${rad.toFixed(2)}" fill="${color}" opacity="${op.toFixed(3)}"/>`;
+    }
+  }
+  svg.innerHTML=out;
+}
+document.querySelectorAll('[data-dots]').forEach(dotField);
+
+/* ---------- content ---------- */
+const QUOTES=[
+  {t:"Thanks to the work with Likewize, we have the highest customer satisfaction score in Europe.",w:"Global OEM",r:"Content Manager"},
+  {t:"The We-Come-To-You repair option has proven to offer our customers an unrivalled level of convenience.",w:"International Bank",r:"Head of Customer Benefits Sourcing"},
+  {t:"Our technical support became unrivalled. We boosted our online platform and reduced returns while slashing call centre costs.",w:"National Retailer",r:"Global Program Manager"},
+  {t:"We appreciate the innovation, speed and exceptional delivery of programs.",w:"International Wireless Carrier",r:"SVP Products &amp; Devices"},
+  {t:"A trusted partner who has helped us deliver a world class experience for our customers in record time.",w:"Wireless Carrier",r:"Head of Product"}
+];
+function renderQuotes(id){
+  const el=document.getElementById(id); if(!el) return;
+  el.innerHTML=QUOTES.map(q=>`<figure class="quote">
+    <div class="quote__mark">&ldquo;</div>
+    <p>${q.t}</p>
+    <footer><b>${q.w}</b>${q.r}</footer>
+  </figure>`).join('');
+}
+renderQuotes('quotes'); renderQuotes('quotes2');
+
+const TICK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+
+const PROGRAMMES={
+  protect:[
+    {k:'SP',h:'Damage, loss and theft are no match.',p:"Staying connected matters, so we offer rapid repairs and replacements on phones, backed by a $500 million investment in the industry's leading digital experience.",b:['Omni-channel claim platform that works for you and your customers','Repair or replace, whichever keeps the customer connected fastest','Fulfilment built around your network, not ours']},
+    {k:'GTP',h:'Cover for every gadget they carry.',p:'Protection that follows the customer beyond the phone, across the tech they use every day.',b:['Laptops, tablets, wearables and audio on one programme','Accidental damage, loss and theft as standard','One claim journey, whichever device goes wrong']},
+    {k:'Home Tech',h:'The simplest way to protect the connected home.',p:"If something goes wrong with a laptop, smart TV or any connected device in the home, we repair or replace it.",b:['Covers the whole connected home, not just the phone','Digital care bundled in to cut avoidable claims','Buy-back and trade-in to take home tech further']}
+  ],
+  care:[
+    {k:'Knowledgebase',h:'Our intelligent knowledgebase.',p:"The world's largest resource for products, apps and services, with the most effective answers to customer problems.",b:['Step-by-step guides and AI-powered videos','Analytics that show you where support is failing','Feeds both self-serve and your call centre agents']},
+    {k:'Product Match',h:'We match customers with the right product.',p:"Customers choose their next device online with filters, search, product explainers and comparison tools. Buyer's remorse? Never heard of it.",b:['Guided discovery instead of spec sheets','Side-by-side comparison in your own catalogue','Fewer returns, higher attach rates']},
+    {k:'Get Started',h:'New tech. Now what?',p:'Customers can set up, register and learn how to use new tech wherever they are. Our platform helps with over 40,000 products.',b:['Manuals made a thing of the past','Guided setup for phones, home tech and accessories','Registration captured at the moment of excitement']},
+    {k:'Troubleshooting',h:'Here to help 24/7.',p:'Answers for nearly any product, any time. Self-serve tools are always available, and agents get the same guides.',b:['Diagnostics before a claim is ever raised','Call centre training with step-by-step guides','Keeping costs low and satisfaction high']}
+  ],
+  renew:[
+    {k:'Trade-In',h:'We make trade-in and upgrade easy.',p:'A simple and transparent customer experience, with minimal-click journeys that boost satisfaction scores.',b:['Industry-leading trade-in values on old devices','Attract and retain more customers at upgrade','Quote, lock and ship in a handful of taps']},
+    {k:'Global Network',h:'Worldwide operational excellence.',p:'The most sophisticated, fully-automated facilities in the industry, with trade-in programmes all over the world.',b:['Millions of devices handled annually','Automated grading and transparent audit trail','Experts at handling volume and seasonal peaks']},
+    {k:'Certified Pre-Owned',h:'Certified Pre-Owned, ready to go.',p:'The most advanced sales channels and experience in the industry, which means more revenue for our customers.',b:['Supplying the largest resellers in the world with like-new stock','Every device fully tested with guaranteed battery life','We support partners at every step to reduce workload']},
+    {k:'Carbon Negative',h:'Two words: Carbon. Negative.',p:"Over 100 million devices saved from landfills, and greenhouse gases reduced equal to a forest the size of Texas.",b:['95% of devices received are refurbished and given a second life','Sustainability reporting your own ESG team can use','Value recovered instead of value binned']}
+  ]
+};
+
+function buildSeg(key){
+  const seg=document.getElementById('seg-'+key);
+  const panel=document.getElementById('panel-'+key);
+  const items=PROGRAMMES[key];
+  seg.innerHTML=items.map((it,i)=>`<button role="tab" aria-selected="${i===0}" data-i="${i}">${it.k}</button>`).join('');
+  function show(i){
+    const it=items[i];
+    panel.innerHTML=`<h3>${it.h}</h3><p>${it.p}</p><ul class="bullets">${it.b.map(b=>`<li>${TICK}${b}</li>`).join('')}</ul>`;
+    seg.querySelectorAll('button').forEach(b=>b.setAttribute('aria-selected',b.dataset.i==i));
+  }
+  seg.addEventListener('click',e=>{const b=e.target.closest('button');if(b)show(+b.dataset.i)});
+  show(0);
+}
+['protect','care','renew'].forEach(buildSeg);
+
+/* ---------- claim journey demo ---------- */
+const ICONS={
+  crack:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="6" y="2.5" width="12" height="19" rx="2.4"/><path d="M12 6l-2.6 4.2 4 1.4-2 4.4"/></svg>',
+  water:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3s6 6.4 6 10.3A6 6 0 0 1 6 13.3C6 9.4 12 3 12 3Z"/></svg>',
+  lost:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5 21 21"/></svg>',
+  home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 11 12 4l8 7v8a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 19Z"/></svg>',
+  store:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 9h18l-1.4 10.2A1.6 1.6 0 0 1 18 20.6H6a1.6 1.6 0 0 1-1.6-1.4Z"/><path d="M8 9V6.5a4 4 0 0 1 8 0V9"/></svg>',
+  post:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="7" width="18" height="12" rx="2"/><path d="M3 11h18M9 19v-8"/></svg>',
+  swap:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg>'
+};
+const CLAIM={
+  q:['What happened?','How would you like it fixed?','When suits you?'],
+  a:[
+    [{i:'crack',b:'Cracked screen',s:'Accidental damage'},{i:'water',b:'Liquid damage',s:'Will not charge or power on'},{i:'lost',b:'Lost or stolen',s:'Device no longer with you'}],
+    [{i:'home',b:'We-Come-To-You',s:'A technician repairs it where you are'},{i:'store',b:'Walk-in repair',s:'Nearest approved repair centre'},{i:'post',b:'Mail-in',s:'Advanced repair facility, tracked both ways'},{i:'swap',b:'Replacement device',s:'Like-for-like, next day'}],
+    [{i:'home',b:'Tomorrow, 9 to 11am',s:'Earliest slot'},{i:'home',b:'Tomorrow, 2 to 4pm',s:'Afternoon'},{i:'home',b:'Saturday, 10am to 12pm',s:'Weekend'}]
+  ]
+};
+const claimBody=document.getElementById('claimBody');
+const claimSteps=document.getElementById('claimSteps').children;
+let claim=[];
+function renderClaim(){
+  for(let i=0;i<3;i++) claimSteps[i].classList.toggle('on', i<Math.max(claim.length,1));
+  if(claim.length<3){
+    const step=claim.length;
+    claimBody.innerHTML=`<p class="qlabel">${CLAIM.q[step]}</p><div class="opts">`+
+      CLAIM.a[step].map((o,i)=>`<button class="opt" data-i="${i}"><span class="opt__ic">${ICONS[o.i]}</span><span><b>${o.b}</b><small>${o.s}</small></span></button>`).join('')+
+      `</div>`+(claim.length?`<button class="reset" data-reset>Start again</button>`:'');
+  }else{
+    const [what,how,when]=claim;
+    claimBody.innerHTML=`<div class="result"><b>${how.b} booked, ${when.b.toLowerCase()}</b>
+      <p>${what.b} logged, excess confirmed, and the customer gets live tracking by text. No calls, no forms, no paperwork.</p></div>
+      <button class="reset" data-reset>Run it again</button>`;
+  }
+}
+claimBody.addEventListener('click',e=>{
+  if(e.target.closest('[data-reset]')){claim=[];renderClaim();return}
+  const b=e.target.closest('.opt'); if(!b) return;
+  claim.push(CLAIM.a[claim.length][+b.dataset.i]); renderClaim();
+});
+renderClaim();
+
+/* ---------- knowledgebase demo ---------- */
+const KB=[
+  {q:'My phone will not charge',a:'Three checks before a claim: swap the cable and adapter, clear lint from the port with a dry brush, then force-restart. If the battery health reads under 80%, we route straight to a battery replacement instead of a repair booking.'},
+  {q:'Set up my new smart TV',a:'Guided setup walks through network, account sign-in and HDMI-CEC in order, with a short video per step for the exact model. Registration is captured at the end, so no manual needed.'},
+  {q:'Move everything to a new phone',a:'Transfer runs over the local network: accounts, messages, photos, two-factor apps and eSIM. We flag the apps that need a manual re-login before the old device is traded in.'},
+  {q:'Is my device worth trading in?',a:'We grade on power-on, screen condition and battery health, then quote against live secondary-market pricing. 95% of devices we receive are refurbished and resold.'}
+];
+const kbList=document.getElementById('kbList'), kbAnswer=document.getElementById('kbAnswer');
+kbList.innerHTML=KB.map((k,i)=>`<button class="opt" data-i="${i}"><span class="opt__ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5 21 21"/></svg></span><span><b>${k.q}</b></span></button>`).join('');
+kbList.addEventListener('click',e=>{
+  const b=e.target.closest('.opt'); if(!b) return;
+  const k=KB[+b.dataset.i];
+  kbAnswer.innerHTML=`<div class="result"><b>${k.q}</b><p>${k.a}</p></div>`;
+  kbList.querySelectorAll('.opt').forEach(o=>o.style.opacity = o===b?1:.6);
+});
+
+/* ---------- trade-in estimator ---------- */
+const DEVICES=[
+  {n:'iPhone 15 Pro 256GB',v:430},{n:'iPhone 14 128GB',v:285},{n:'iPhone 12 64GB',v:120},
+  {n:'Samsung Galaxy S24 256GB',v:355},{n:'Samsung Galaxy S22 128GB',v:150},
+  {n:'Google Pixel 8 128GB',v:230},{n:'iPad Air (5th gen) 64GB',v:245}
+];
+const COND={good:{m:1,t:'Highest band. Quote locked for 14 days; ship free or hand it in at any partner store.'},
+  fair:{m:.78,t:'Cosmetic wear only. Graded on arrival, and if it grades higher the customer gets the difference.'},
+  cracked:{m:.42,t:'Still worth real money. 95% of devices we receive are refurbished rather than scrapped.'}};
+const tiDevice=document.getElementById('tiDevice'), tiCond=document.getElementById('tiCond');
+const tiValue=document.getElementById('tiValue'), tiNote=document.getElementById('tiNote');
+tiDevice.innerHTML=DEVICES.map((d,i)=>`<option value="${i}">${d.n}</option>`).join('');
+function quote(){
+  const d=DEVICES[+tiDevice.value], c=COND[tiCond.value];
+  tiValue.textContent='£'+Math.round(d.v*c.m/5)*5;
+  tiNote.textContent=c.t;
+}
+tiDevice.addEventListener('change',quote); tiCond.addEventListener('change',quote); quote();
+
+/* ---------- tabs / routing ---------- */
+const NAV=[
+  {id:'home',label:'Home',ic:'<path d="M4 11 12 4l8 7v8a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 19Z"/>'},
+  {id:'protect',label:'Protect',ic:'<path d="M12 3 5 5.6v5.6c0 4.3 2.9 7.6 7 9.2 4.1-1.6 7-4.9 7-9.2V5.6Z"/>'},
+  {id:'care',label:'Care',ic:'<path d="M4 13v-1a8 8 0 0 1 16 0v1"/><path d="M4 13h2.6v5H5.4A1.4 1.4 0 0 1 4 16.6Zm16 0h-2.6v5h1.2A1.4 1.4 0 0 0 20 16.6Z"/><path d="M17.4 18v.6a2.4 2.4 0 0 1-2.4 2.4h-2"/>'},
+  {id:'renew',label:'Renew',ic:'<path d="M4 12a8 8 0 0 1 13.3-6M20 12a8 8 0 0 1-13.3 6"/><path d="M17 3v3.4h-3.4M7 21v-3.4h3.4"/>'},
+  {id:'partner',label:'Partner',ic:'<path d="M3 11.5 8 7l4 3.2L17 6.5l4 3"/><path d="M8 7v10M17 6.5V17M3 20h18"/>'}
+];
+const tabs=document.getElementById('tabs');
+tabs.innerHTML=NAV.map(n=>`<button class="tab" role="tab" data-go="${n.id}" aria-selected="false">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${n.ic}</svg>
+  <span>${n.label}</span><i class="dot"></i></button>`).join('');
+
+function go(id,push){
+  if(!NAV.some(n=>n.id===id)) id='home';
+  NAV.forEach(n=>{ document.getElementById('v-'+n.id).hidden = n.id!==id });
+  tabs.querySelectorAll('.tab').forEach(t=>t.setAttribute('aria-selected',t.dataset.go===id));
+  window.scrollTo({top:0,behavior:'instant'});
+  if(push && location.hash.slice(1)!==id){ try{history.replaceState(null,'','#'+id)}catch(e){} }
+}
+document.addEventListener('click',e=>{
+  const g=e.target.closest('[data-go]'); if(g){ go(g.dataset.go,true); return }
+  const c=e.target.closest('[data-copy]');
+  if(c){
+    const txt=c.dataset.copy;
+    const done=()=>{const o=c.textContent;c.textContent='Copied';setTimeout(()=>c.textContent=o,1400)};
+    const fallback=()=>{ const r=document.createRange(); r.selectNodeContents(c.closest('.row').querySelector('span span')); const s=getSelection(); s.removeAllRanges(); s.addRange(r); };
+    try{ navigator.clipboard.writeText(txt).then(done,fallback) }catch(err){ fallback() }
+  }
+});
+go(location.hash.replace('#','')||'home',false);
+window.addEventListener('hashchange',()=>go(location.hash.replace('#',''),false));
+
+/* ---------- QR sheet ---------- */
+const APP_URL="https://likewize-on-hand-web.vercel.app";
+const sheet=document.getElementById('sheet');
+const qrBtn=document.getElementById('qrBtn');
+// Inside the iOS app the page is already on the phone, so the "open on your
+// phone" code has nothing to offer. Hide it when we are running from the bundle.
+if(location.protocol==='file:') qrBtn.hidden=true;
+qrBtn.addEventListener('click',()=>{
+  sheet.hidden=false;
+  const box=document.getElementById('qr');
+  document.getElementById('qrUrl').textContent = APP_URL || 'Link appears here once published.';
+  if(APP_URL && !box.dataset.done && window.QRCode){
+    try{ new QRCode(box,{text:APP_URL,width:186,height:186,colorDark:'#3200BE',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M}); box.dataset.done='1' }catch(e){}
+  }
+});
+document.getElementById('sheetClose').addEventListener('click',()=>{sheet.hidden=true});
+sheet.addEventListener('click',e=>{if(e.target===sheet)sheet.hidden=true});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')sheet.hidden=true});
+</script>
